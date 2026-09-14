@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { useTodos } from "@/hooks/useTodos";
 import { STORAGE_KEY } from "@/lib/storage";
 
@@ -17,6 +17,24 @@ describe("useTodos", () => {
     const { result } = renderHook(() => useTodos());
 
     expect(result.current.todos.map((todo) => todo.text)).toEqual(["Stored"]);
+  });
+
+  test("never overwrites stored todos with an empty list while hydrating", () => {
+    const stored = [{ id: "1", text: "Stored", completed: false, createdAt: 1 }];
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
+
+    for (let mount = 0; mount < 3; mount += 1) {
+      const { result, unmount } = renderHook(() => useTodos());
+
+      expect(result.current.todos.map((todo) => todo.text)).toEqual(["Stored"]);
+      expect(setItem.mock.calls.map((call) => call[1])).not.toContain("[]");
+      expect(window.localStorage.getItem(STORAGE_KEY)).toBe(JSON.stringify(stored));
+
+      unmount();
+    }
+
+    setItem.mockRestore();
   });
 
   test("adds new todos at the top and ignores empty input", () => {
