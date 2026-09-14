@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "deny": [
+      "Exec(rm)",
+      "Exec(rm -rf)",
+      "Exec(sudo)"
+    ]
+  }
+}
