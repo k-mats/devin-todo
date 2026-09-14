@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { loadTodos, saveTodos } from "@/lib/storage";
 import type { Todo } from "@/types/todo";
 
@@ -21,17 +21,17 @@ export interface UseTodos {
 
 export function useTodos(): UseTodos {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const loaded = useRef(false);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     setTodos(loadTodos());
-    loaded.current = true;
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (!loaded.current) return;
+    if (!hydrated) return;
     saveTodos(todos);
-  }, [todos]);
+  }, [hydrated, todos]);
 
   const addTodo = useCallback((text: string) => {
     const trimmed = text.trim();
